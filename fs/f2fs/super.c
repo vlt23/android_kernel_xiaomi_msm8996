@@ -2632,7 +2632,6 @@ int f2fs_sanity_check_ckpt(struct f2fs_sb_info *sbi)
 	block_t user_block_count, valid_user_blocks;
 	block_t avail_node_count, valid_node_count;
 	int i, j;
-
 	total = le32_to_cpu(raw_super->segment_count);
 	fsmeta = le32_to_cpu(raw_super->segment_count_ckpt);
 	sit_segs = le32_to_cpu(raw_super->segment_count_sit);
@@ -2641,19 +2640,15 @@ int f2fs_sanity_check_ckpt(struct f2fs_sb_info *sbi)
 	fsmeta += nat_segs;
 	fsmeta += le32_to_cpu(ckpt->rsvd_segment_count);
 	fsmeta += le32_to_cpu(raw_super->segment_count_ssa);
-
 	if (unlikely(fsmeta >= total))
 		return 1;
-
 	ovp_segments = le32_to_cpu(ckpt->overprov_segment_count);
 	reserved_segments = le32_to_cpu(ckpt->rsvd_segment_count);
-
 	if (unlikely(fsmeta < F2FS_MIN_SEGMENTS ||
 			ovp_segments == 0 || reserved_segments == 0)) {
 		f2fs_err(sbi, "Wrong layout: check mkfs.f2fs version");
 		return 1;
 	}
-
 	user_block_count = le64_to_cpu(ckpt->user_block_count);
 	segment_count_main = le32_to_cpu(raw_super->segment_count_main);
 	log_blocks_per_seg = le32_to_cpu(raw_super->log_blocks_per_seg);
@@ -2663,14 +2658,12 @@ int f2fs_sanity_check_ckpt(struct f2fs_sb_info *sbi)
 			 user_block_count);
 		return 1;
 	}
-
 	valid_user_blocks = le64_to_cpu(ckpt->valid_block_count);
 	if (valid_user_blocks > user_block_count) {
 		f2fs_err(sbi, "Wrong valid_user_blocks: %u, user_block_count: %u",
 			 valid_user_blocks, user_block_count);
 		return 1;
 	}
-
 	valid_node_count = le32_to_cpu(ckpt->valid_node_count);
 	avail_node_count = sbi->total_node_count - sbi->nquota_files -
 						F2FS_RESERVED_NODE_NUM;
@@ -2679,10 +2672,8 @@ int f2fs_sanity_check_ckpt(struct f2fs_sb_info *sbi)
 			 valid_node_count, avail_node_count);
 		return 1;
 	}
-
 	main_segs = le32_to_cpu(raw_super->segment_count_main);
 	blocks_per_seg = sbi->blocks_per_seg;
-
 	for (i = 0; i < NR_CURSEG_NODE_TYPE; i++) {
 		if (le32_to_cpu(ckpt->cur_node_segno[i]) >= main_segs ||
 			le16_to_cpu(ckpt->cur_node_blkoff[i]) >= blocks_per_seg)
@@ -2722,17 +2713,14 @@ int f2fs_sanity_check_ckpt(struct f2fs_sb_info *sbi)
 			}
 		}
 	}
-
 	sit_bitmap_size = le32_to_cpu(ckpt->sit_ver_bitmap_bytesize);
 	nat_bitmap_size = le32_to_cpu(ckpt->nat_ver_bitmap_bytesize);
-
 	if (sit_bitmap_size != ((sit_segs / 2) << log_blocks_per_seg) / 8 ||
 		nat_bitmap_size != ((nat_segs / 2) << log_blocks_per_seg) / 8) {
 		f2fs_err(sbi, "Wrong bitmap size: sit: %u, nat:%u",
 			 sit_bitmap_size, nat_bitmap_size);
 		return 1;
 	}
-
 	cp_pack_start_sum = __start_sum_addr(sbi);
 	cp_payload = __cp_payload(sbi);
 	if (cp_pack_start_sum < cp_payload + 1 ||
@@ -2742,7 +2730,6 @@ int f2fs_sanity_check_ckpt(struct f2fs_sb_info *sbi)
 			 cp_pack_start_sum);
 		return 1;
 	}
-
 	if (__is_set_ckpt_flags(ckpt, CP_LARGE_NAT_BITMAP_FLAG) &&
 		le32_to_cpu(ckpt->checksum_offset) != CP_MIN_CHKSUM_OFFSET) {
 		f2fs_warn(sbi, "using deprecated layout of large_nat_bitmap, "
@@ -2751,19 +2738,6 @@ int f2fs_sanity_check_ckpt(struct f2fs_sb_info *sbi)
 			  le32_to_cpu(ckpt->checksum_offset));
 		return 1;
 	}
-
-	sit_bitmap_size = le32_to_cpu(ckpt->sit_ver_bitmap_bytesize);
-	nat_bitmap_size = le32_to_cpu(ckpt->nat_ver_bitmap_bytesize);
-	log_blocks_per_seg = le32_to_cpu(raw_super->log_blocks_per_seg);
-
-	if (sit_bitmap_size != ((sit_segs / 2) << log_blocks_per_seg) / 8 ||
-		nat_bitmap_size != ((nat_segs / 2) << log_blocks_per_seg) / 8) {
-		f2fs_msg(sbi->sb, KERN_ERR,
-			"Wrong bitmap size: sit: %u, nat:%u",
-			sit_bitmap_size, nat_bitmap_size);
-		return 1;
-	}
-
 	if (unlikely(f2fs_cp_error(sbi))) {
 		f2fs_err(sbi, "A bug case: need to run fsck");
 		return 1;
