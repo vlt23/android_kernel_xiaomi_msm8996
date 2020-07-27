@@ -62,7 +62,7 @@ static void update_general_status(struct f2fs_sb_info *sbi)
 		si->nr_flushed =
 			atomic_read(&SM_I(sbi)->fcc_info->issued_flush);
 		si->nr_flushing =
-			atomic_read(&SM_I(sbi)->fcc_info->issing_flush);
+			atomic_read(&SM_I(sbi)->fcc_info->queued_flush);
 		si->flush_list_empty =
 			llist_empty(&SM_I(sbi)->fcc_info->issue_list);
 	}
@@ -70,7 +70,7 @@ static void update_general_status(struct f2fs_sb_info *sbi)
 		si->nr_discarded =
 			atomic_read(&SM_I(sbi)->dcc_info->issued_discard);
 		si->nr_discarding =
-			atomic_read(&SM_I(sbi)->dcc_info->issing_discard);
+			atomic_read(&SM_I(sbi)->dcc_info->queued_discard);
 		si->nr_discard_cmd =
 			atomic_read(&SM_I(sbi)->dcc_info->discard_cmd_cnt);
 		si->undiscard_blks = SM_I(sbi)->dcc_info->undiscard_blks;
@@ -197,7 +197,7 @@ static void update_mem_info(struct f2fs_sb_info *sbi)
 	si->base_mem += 2 * SIT_VBLOCK_MAP_SIZE * MAIN_SEGS(sbi);
 	si->base_mem += SIT_VBLOCK_MAP_SIZE * MAIN_SEGS(sbi);
 	si->base_mem += SIT_VBLOCK_MAP_SIZE;
-	if (sbi->segs_per_sec > 1)
+	if (__is_large_section(sbi))
 		si->base_mem += MAIN_SECS(sbi) * sizeof(struct sec_entry);
 	si->base_mem += __bitmap_size(sbi, SIT_BITMAP);
 
@@ -512,7 +512,7 @@ void f2fs_destroy_stats(struct f2fs_sb_info *sbi)
 	list_del(&si->stat_list);
 	mutex_unlock(&f2fs_stat_mutex);
 
-	kfree(si);
+	kvfree(si);
 }
 
 int __init f2fs_create_root_stats(void)
